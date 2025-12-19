@@ -1683,6 +1683,10 @@ class CodeAgent(MultiStepAgent):
 
         ### Parse output ###
         try:
+            if output_text is None or output_text.strip() == "":
+                error_msg = f"Your output was empty. You must provide your thoughts and code in the following format:\nThought: <your thoughts>\n{self.code_block_tags[0]}\n<your python code>\n{self.code_block_tags[1]}"
+                raise AgentParsingError(error_msg, self.logger)
+            
             if self._use_structured_outputs_internally:
                 code_action = json.loads(output_text)["code"]
                 code_action = extract_code_from_text(code_action, self.code_block_tags) or code_action

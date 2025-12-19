@@ -171,8 +171,10 @@ def parse_json_blob(json_blob: str) -> tuple[dict[str, str], str]:
         )
 
 
-def extract_code_from_text(text: str, code_block_tags: tuple[str, str]) -> str | None:
+def extract_code_from_text(text: str | None, code_block_tags: tuple[str, str]) -> str | None:
     """Extract code from the LLM's output."""
+    if text is None:
+        return None
     pattern = rf"{code_block_tags[0]}(.*?){code_block_tags[1]}"
     matches = re.findall(pattern, text, re.DOTALL)
     if matches:
@@ -180,20 +182,23 @@ def extract_code_from_text(text: str, code_block_tags: tuple[str, str]) -> str |
     return None
 
 
-def parse_code_blobs(text: str, code_block_tags: tuple[str, str]) -> str:
+def parse_code_blobs(text: str | None, code_block_tags: tuple[str, str]) -> str:
     """Extract code blocs from the LLM's output.
 
     If a valid code block is passed, it returns it directly.
 
     Args:
-        text (`str`): LLM's output text to parse.
+        text (`str | None`): LLM's output text to parse.
 
     Returns:
         `str`: Extracted code block.
 
     Raises:
-        ValueError: If no valid code block is found in the text.
+        ValueError: If no valid code block is found in the text or if text is None.
     """
+    if text is None:
+        raise ValueError("Cannot parse code from None content. The model returned no text content.")
+    
     matches = extract_code_from_text(text, code_block_tags)
     if not matches:  # Fallback to markdown pattern
         matches = extract_code_from_text(text, ("```(?:python|py)", "\n```"))
